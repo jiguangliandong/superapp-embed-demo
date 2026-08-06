@@ -1,3 +1,11 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const projectRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+);
+
 const required = (name) => {
   const value = process.env[name]?.trim();
 
@@ -6,6 +14,13 @@ const required = (name) => {
   }
 
   return value;
+};
+
+const projectPath = (name) => {
+  const value = required(name);
+  return path.isAbsolute(value)
+    ? value
+    : path.resolve(projectRoot, value);
 };
 
 const parsePositiveInteger = (name, fallback) => {
@@ -32,7 +47,7 @@ export const config = Object.freeze({
   superappBaseUrl: required("SUPERAPP_BASE_URL").replace(/\/$/, ""),
   clientId: required("SUPERAPP_CLIENT_ID"),
   keyId: required("SUPERAPP_KEY_ID"),
-  privateKeyPath: required("SUPERAPP_PRIVATE_KEY_PATH"),
+  privateKeyPath: projectPath("SUPERAPP_PRIVATE_KEY_PATH"),
   allowedScopes: Object.freeze([...new Set(allowedScopes)]),
   transactionTtlMs:
     parsePositiveInteger("SSO_TRANSACTION_TTL_SECONDS", "300") * 1000,

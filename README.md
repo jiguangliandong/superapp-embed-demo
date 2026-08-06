@@ -11,7 +11,7 @@ server side.
 
 - Node.js 24+
 - A registered and active SuperApp Embed Client
-- An ES256 Partner private key stored outside this repository
+- An ES256 Partner private key stored in the ignored local `secrets/` directory
 - An HTTPS origin for WebView testing
 
 ## Setup
@@ -24,11 +24,21 @@ cp .env.example .env
 Fill in `.env` with the local SuperApp endpoints, Embed Client ID, key ID,
 private-key path, approved scopes, and a randomly generated session secret.
 
+Place the local Partner private key at:
+
+```text
+secrets/partner-es256-private.pem
+```
+
+Keep its filesystem mode at `600`. The entire `secrets/` directory is ignored
+by Git and is not served by Express, which exposes static files only from
+`public/`.
+
 ```bash
 openssl rand -hex 32
 ```
 
-Never commit `.env` or the Partner private key.
+Never commit `.env` or any file from `secrets/`.
 
 ## Run
 
