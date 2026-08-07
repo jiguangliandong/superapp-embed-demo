@@ -1,6 +1,7 @@
 # SuperApp H5 SSO Demo
 
-A server-rendered Partner H5 demo for the SuperApp Embed SSO V1 flow.
+SuperApp Embed 集成演示项目。A server-rendered Partner H5 demo for the
+SuperApp Embed SSO V1 flow.
 
 The browser uses the pinned SuperApp Embed SDK to request an authorization
 code from the trusted native WebView bridge. The Partner backend keeps the
