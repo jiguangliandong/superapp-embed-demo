@@ -184,13 +184,27 @@ const waitForPageLoad = () => new Promise((resolve) => {
 });
 
 const authenticate = async ({ automatic = false } = {}) => {
+  const copy = automatic
+    ? {
+        loading: "正在检查 SuperApp 授权状态…",
+        pending: "正在通过 SuperApp 登录",
+        successEntry: "自动发起 SSO 登录",
+        failure: "需要重新授权",
+      }
+    : {
+        loading: null,
+        pending: "等待 SuperApp 授权",
+        successEntry: "用户主动完成 SSO 登录",
+        failure: "授权或登录失败",
+      };
+
   clearError();
-  if (automatic) {
-    showLoading("授权仍然有效，正在恢复登录…");
+  if (copy.loading) {
+    showLoading(copy.loading);
   } else {
     showLogin();
   }
-  elements.ssoStatus.textContent = automatic ? "正在免授权恢复登录" : "等待 SuperApp 授权";
+  elements.ssoStatus.textContent = copy.pending;
   elements.ssoStatus.classList.remove("status-good");
   updateControls(true);
 
@@ -200,13 +214,13 @@ const authenticate = async ({ automatic = false } = {}) => {
       completeURL: "/api/sso/complete",
       scopes: requestedScopes,
     }));
-    elements.ssoStatus.textContent = "SSO 登录成功";
+    elements.ssoStatus.textContent = "SuperApp 登录成功";
     elements.ssoStatus.classList.add("status-good");
-    renderProfile(session, automatic ? "免授权恢复登录" : "刚完成 SSO 登录");
+    renderProfile(session, copy.successEntry);
     return true;
   } catch (error) {
     if (automatic) showLogin();
-    elements.ssoStatus.textContent = "授权或登录失败";
+    elements.ssoStatus.textContent = copy.failure;
     showError(error);
     return false;
   } finally {
@@ -262,7 +276,6 @@ const initialize = async () => {
   // revocation or added scopes opens the native consent UI.
   await waitForPageLoad();
   if (await authenticate({ automatic: true })) return;
-  elements.ssoStatus.textContent = "需要重新授权";
   updateControls();
 };
 

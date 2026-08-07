@@ -33,6 +33,18 @@ test("automatic SSO does not trust browser storage as authorization state", asyn
   assert.match(source, /authenticate\(\{ automatic: true \}\)/);
 });
 
+test("automatic SSO uses consent-neutral copy until SuperApp decides", async () => {
+  const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+  const source = await readFile(resolve(projectRoot, "src", "app.js"), "utf8");
+
+  assert.doesNotMatch(source, /授权仍然有效|免授权恢复/);
+  assert.match(source, /正在检查 SuperApp 授权状态/);
+  assert.match(source, /正在通过 SuperApp 登录/);
+  assert.match(source, /自动发起 SSO 登录/);
+  assert.match(source, /用户主动完成 SSO 登录/);
+  assert.match(source, /Partner 会话自动恢复/);
+});
+
 test("authenticate connects bootstrap, Native Bridge and complete without exposing PKCE verifier", async () => {
   const requests = [];
   const bridgeCalls = [];
