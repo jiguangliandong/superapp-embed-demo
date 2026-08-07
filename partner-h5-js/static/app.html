@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="superapp-client-id" content="__SUPERAPP_CLIENT_ID__">
+    <title>SuperApp Partner SSO Demo</title>
+    <link rel="stylesheet" href="/assets/app.css">
+    <script src="/assets/app.js" defer></script>
+  </head>
+  <body>
+    <main class="page-shell">
+      <section id="loading-view" class="loading-card view" aria-live="polite">
+        <div class="loading-mark" aria-hidden="true"></div>
+        <p class="eyebrow">Partner H5 · SSO</p>
+        <h1>正在安全登录</h1>
+        <p id="loading-message" class="lead">正在验证 Partner 会话，请稍候…</p>
+      </section>
+
+      <section id="login-view" class="hero view" hidden>
+        <p class="eyebrow">Partner H5 · SSO Demo</p>
+        <h1>欢迎进入合作方服务</h1>
+        <p class="lead">
+          这是一个真实的 SuperApp 内嵌 H5 示例。点击授权后，由 SuperApp 原生容器确认权限，Partner Backend 再安全取得用户资料。
+        </p>
+
+        <div class="status-grid" aria-label="SSO 状态">
+          <div class="status-row">
+            <span>启动上下文</span>
+            <span id="launch-status" class="status-value">检测中…</span>
+          </div>
+          <div class="status-row">
+            <span>宿主环境</span>
+            <span id="context-status" class="status-value">检测中…</span>
+          </div>
+          <div class="status-row">
+            <span>账户状态</span>
+            <span id="sso-status" class="status-value">尚未登录</span>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="login-button" class="primary" type="button" disabled>授权并登录</button>
+          <button class="secondary" data-open-privacy type="button" disabled>授权管理</button>
+          <button class="secondary" data-close type="button" disabled>关闭页面</button>
+        </div>
+
+        <p class="error" data-error-detail role="alert" hidden></p>
+        <a class="privacy-link" href="/privacy">查看 Partner 隐私政策</a>
+      </section>
+
+      <section id="profile-view" class="profile-card view" hidden>
+        <p class="eyebrow">Partner H5 · 用户信息</p>
+        <div class="profile-header">
+          <div id="profile-avatar" class="profile-avatar" aria-hidden="true"></div>
+          <div>
+            <p>已通过 SuperApp SSO 登录</p>
+            <h2 id="profile-name"></h2>
+          </div>
+        </div>
+
+        <div class="session-banner">
+          <span>本次进入</span>
+          <strong id="profile-entry-mode"></strong>
+        </div>
+
+        <dl class="profile-fields">
+          <div><dt>OpenID</dt><dd id="profile-open-id"></dd></div>
+          <div><dt>手机号</dt><dd id="profile-phone"></dd></div>
+          <div><dt>邮箱</dt><dd id="profile-email"></dd></div>
+          <div><dt>KYC 状态</dt><dd id="profile-kyc"></dd></div>
+          <div><dt>授权范围</dt><dd id="profile-scopes"></dd></div>
+          <div><dt>授权版本</dt><dd id="profile-consent-version"></dd></div>
+          <div><dt>会话有效期</dt><dd id="profile-session-expires"></dd></div>
+        </dl>
+
+        <div class="actions profile-actions">
+          <button class="secondary" data-open-privacy type="button" disabled>授权管理</button>
+          <button class="secondary" data-close type="button" disabled>关闭页面</button>
+        </div>
+        <p class="error" data-error-detail role="alert" hidden></p>
+        <a class="privacy-link" href="/privacy">查看 Partner 隐私政策</a>
+      </section>
+    </main>
+  </body>
+</html>

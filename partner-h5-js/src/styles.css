@@ -1,0 +1,298 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #14213d;
+  background: #eef3f8;
+  font-synthesis: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at top right, rgb(45 108 223 / 18%), transparent 38%),
+    #eef3f8;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.page-shell {
+  width: min(100% - 28px, 620px);
+  margin: 0 auto;
+  padding: 32px 0 52px;
+}
+
+.hero,
+.profile-card,
+.loading-card,
+.policy-card {
+  border: 1px solid rgb(255 255 255 / 70%);
+  border-radius: 24px;
+  background: rgb(255 255 255 / 94%);
+  box-shadow: 0 20px 50px rgb(20 33 61 / 10%);
+}
+
+.view[hidden] {
+  display: none;
+}
+
+.hero,
+.loading-card,
+.policy-card {
+  padding: 28px;
+}
+
+.loading-card {
+  min-height: 390px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+}
+
+.loading-card .lead {
+  margin-top: 4px;
+}
+
+.loading-mark {
+  width: 46px;
+  height: 46px;
+  margin-bottom: 24px;
+  border: 4px solid #dce6f6;
+  border-top-color: #2d6cdf;
+  border-radius: 50%;
+  animation: loading-spin 0.8s linear infinite;
+}
+
+@keyframes loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.eyebrow {
+  margin: 0;
+  color: #2d6cdf;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 8px 0 12px;
+  font-size: clamp(28px, 7vw, 38px);
+  line-height: 1.15;
+}
+
+.lead {
+  margin: 0;
+  color: #53627a;
+  line-height: 1.65;
+}
+
+.status-grid {
+  display: grid;
+  gap: 10px;
+  margin: 26px 0;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  background: #f6f8fb;
+}
+
+.status-row span:first-child {
+  color: #66758b;
+}
+
+.status-value {
+  text-align: right;
+  font-weight: 700;
+}
+
+.status-good {
+  color: #128142;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+button {
+  min-height: 48px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 14px;
+  color: #fff;
+  background: #2d6cdf;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+button.primary {
+  grid-column: 1 / -1;
+}
+
+button.secondary {
+  color: #29425f;
+  background: #e9eff7;
+}
+
+button:disabled {
+  color: #8d99a8;
+  background: #e5e9ef;
+  cursor: not-allowed;
+}
+
+.error {
+  margin: 18px 0 0;
+  padding: 13px 14px;
+  border-radius: 12px;
+  color: #a12822;
+  background: #fff0ef;
+  font-weight: 700;
+}
+
+.profile-card {
+  padding: 24px;
+}
+
+.profile-header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin: 18px 0 22px;
+}
+
+.session-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  color: #53627a;
+  background: #edf7f1;
+}
+
+.session-banner strong {
+  color: #128142;
+  text-align: right;
+}
+
+.profile-avatar {
+  display: grid;
+  width: 68px;
+  height: 68px;
+  flex: 0 0 68px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  color: #245bbb;
+  background: #dfeaff;
+  font-size: 27px;
+  font-weight: 900;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-header p,
+.profile-header h2 {
+  margin: 0;
+}
+
+.profile-header p {
+  color: #66758b;
+  font-size: 13px;
+}
+
+.profile-header h2 {
+  margin-top: 5px;
+  font-size: 23px;
+}
+
+.profile-fields {
+  margin: 0;
+}
+
+.profile-fields div {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 12px;
+  padding: 13px 0;
+  border-top: 1px solid #e8edf3;
+}
+
+.profile-fields dt {
+  color: #66758b;
+}
+
+.profile-fields dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-weight: 650;
+}
+
+.privacy-link {
+  display: inline-block;
+  margin-top: 22px;
+  color: #245bbb;
+  font-weight: 700;
+}
+
+.profile-actions {
+  margin-top: 22px;
+}
+
+.policy-card h2 {
+  margin: 28px 0 8px;
+  font-size: 19px;
+}
+
+.policy-card p,
+.policy-card li {
+  color: #53627a;
+  line-height: 1.7;
+}
+
+@media (max-width: 420px) {
+  .page-shell {
+    width: min(100% - 20px, 620px);
+    padding-top: 18px;
+  }
+
+  .hero,
+  .loading-card,
+  .policy-card,
+  .profile-card {
+    padding: 21px;
+    border-radius: 20px;
+  }
+
+  .profile-fields div {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
