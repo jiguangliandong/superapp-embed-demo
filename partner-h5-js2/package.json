@@ -1,0 +1,19 @@
+{
+  "name": "partner-h5-js2",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@superapp/embed-sdk": "git+https://github.com/jiguangliandong/superapp-embed-js-sdk.git#8b04b8ebf18652efc0e08af3a198121fdaa87109"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.1"
+  }
+}

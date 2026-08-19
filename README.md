@@ -10,6 +10,10 @@
 Manifest → H5 请求 Native Bridge 授权 → Go Backend 兑换 Code、查询 UserInfo → H5
 展示昵称、OpenID、手机号、邮箱和 KYC 状态。
 
+如果 Partner 不引入 JavaScript SDK 和服务端 SDK，可直接参考
+[`SuperApp Embed SSO 三方接入指南（无 SDK 版）`](docs/superapp-embed-sso-partner-integration-no-sdk.md)，
+按照 Native Bridge、PKCE、`private_key_jwt` 和 OAuth Endpoint 契约自行实现。
+
 ## 1. 一次性配置
 
 除非代码块另有说明，下面的项目命令都从仓库根目录执行：

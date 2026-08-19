@@ -6,6 +6,7 @@ secrets/
 
 # Generated Partner H5 output served by the Go backend.
 partner-h5-js/dist/
+partner-h5-js2/dist/
 
 # Android local/build output.
 superapp-android/.gradle/
