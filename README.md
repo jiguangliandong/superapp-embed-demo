@@ -3,16 +3,18 @@
 本分支用三个彼此隔离的目录演示完整 SSO：
 
 - `superapp-android`：原生 Kotlin/Compose SuperApp 客户端；
-- `partner-h5-js`：使用 `@superapp/embed-sdk v0.0.1` 的真实 H5 页面；
-- `partner-backend-go`：使用 `superapp-embed-go-sdk v0.0.2` 的 Partner Backend。
+- `partner-h5-js`：不使用 SuperApp JavaScript SDK、直接实现 Native Bridge 与 Partner API
+  协议的真实 H5 页面；
+- `partner-backend-go`：不使用 SuperApp Go SDK、直接实现 SSO 事务、PKCE、
+  `private_key_jwt`、Token、Refresh 和 UserInfo 协议的 Partner Backend。
 
 最终路径是：Customer 登录 Android App → 点击金刚位 → App 获取并验签 Launch
 Manifest → H5 请求 Native Bridge 授权 → Go Backend 兑换 Code、查询 UserInfo → H5
 展示昵称、OpenID、手机号、邮箱和 KYC 状态。
 
-如果 Partner 不引入 JavaScript SDK 和服务端 SDK，可直接参考
+本分支的 Partner H5 和 Partner Backend 都不引入 SuperApp 专用 SDK，完整实现说明见
 [`SuperApp Embed SSO 三方接入指南（无 SDK 版）`](docs/superapp-embed-sso-partner-integration-no-sdk.md)，
-按照 Native Bridge、PKCE、`private_key_jwt` 和 OAuth Endpoint 契约自行实现。
+可以直接对照本 Demo 理解 Native Bridge、PKCE、`private_key_jwt` 和 OAuth Endpoint 契约。
 
 SuperApp Android 客户端团队可参考
 [`SuperApp Embed SSO Android 接入指南`](docs/superapp-embed-sso-android-integration-guide.md)，
@@ -243,7 +245,7 @@ Backend 中的 Consent 决定。每次打开仍会使用新的短期 Launch Mani
 Session 时也会使用新的一次性 Authorization Code。
 
 Demo 的 `PARTNER_SESSION_TTL_SECONDS` 默认是 43200 秒（12 小时滑动过期）。Access Token
-到期前由 Partner Backend 使用 Go SDK 和 Refresh Token 刷新；刷新或 UserInfo 校验发现
+到期前由 Partner Backend 直接使用 Refresh Token 调用 Token Endpoint 刷新；刷新或 UserInfo 校验发现
 授权已撤销时，Partner Session 会立即失效。当前 SuperApp Backend 的 Consent 默认无固定
 期限，持续到用户撤销、Partner 提升 Consent Version 或申请新增 Scope。生产环境可根据数据
 敏感度在 SuperApp 侧设置例如 180 天的 Consent 期限；Consent 期限由 SuperApp 的授权策略

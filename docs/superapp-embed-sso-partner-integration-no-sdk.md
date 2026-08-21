@@ -1087,11 +1087,12 @@ Assertion、Authorization Code、Access Token、Refresh Token、Customer Token �
 
 ## 14. 参考实现
 
-本仓库当前 SDK 版端到端 Demo 可以用于理解角色边界和验证协议行为：
+本仓库的 `codex/no-sdk-partner-h5` 分支是完整的无 SDK 端到端参考实现：
 
 - `superapp-android/`：SuperApp 原生客户端和 `SuperappNativeBridge`；
-- `partner-h5-js/`：Partner H5 页面；
-- `partner-backend-go/`：Partner Backend；
+- `partner-h5-js/`：直接调用 Native Bridge 和 Partner API 的 H5 页面；
+- `partner-backend-go/`：直接实现 PKCE、`private_key_jwt`、Token、Refresh 和 UserInfo 的
+  Partner Backend；
 - `codex/nodejs` 分支：不使用 Go SDK、直接实现 PKCE、`private_key_jwt`、Token 和 UserInfo
   请求的 Node.js 服务端示例。
 

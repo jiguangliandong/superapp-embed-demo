@@ -1,7 +1,7 @@
-import {
-  createSuperappEmbedSDK,
-  SuperappEmbedError,
-} from "@superapp/embed-sdk";
+import { PartnerApiClient, validatePartnerSession } from "./partner-api.js";
+import { authenticateWithoutSdk } from "./sso-flow.js";
+import { PartnerSsoError } from "./sso-error.js";
+import { SuperappBridgeClient } from "./superapp-bridge.js";
 
 const requestedScopes = [
   "auth_base",
@@ -39,7 +39,8 @@ const elements = {
   entryMode: document.querySelector("#profile-entry-mode"),
 };
 
-let sdk;
+const partnerApi = new PartnerApiClient();
+let bridgeClient;
 let capabilities = [];
 
 const launchId = new URL(window.location.href).searchParams.get("launch_id");
@@ -47,7 +48,7 @@ elements.launchStatus.textContent = launchId ? "已检测到 launch_id" : "普�
 elements.launchStatus.classList.toggle("status-good", Boolean(launchId));
 
 const stableErrorCode = (error) =>
-  error instanceof SuperappEmbedError ? error.code : "unexpected_error";
+  error instanceof PartnerSsoError ? error.code : "unexpected_error";
 
 const showError = (error) => {
   for (const element of elements.errors) {
@@ -80,20 +81,6 @@ const displayValue = (value, fallback = "未授权或未设置") =>
 const fallbackAvatar = (displayName) =>
   (displayName?.trim() || "U").slice(0, 1).toUpperCase();
 
-const validateSession = (session) => {
-  if (
-    session?.authenticated !== true ||
-    typeof session?.user !== "object" ||
-    session.user === null ||
-    typeof session.user.open_id !== "string" ||
-    !Array.isArray(session.scope) ||
-    typeof session.session_expires_at !== "string"
-  ) {
-    throw new Error("Invalid Partner session response");
-  }
-  return session;
-};
-
 const replacePath = (pathname) => {
   const url = new URL(window.location.href);
   url.pathname = pathname;
@@ -111,7 +98,7 @@ const formatDateTime = (value) => {
 };
 
 const renderProfile = (session, entryMode) => {
-  validateSession(session);
+  validatePartnerSession(session);
   const user = session.user;
   const displayName = displayValue(user.display_name, "SuperApp 用户");
 
@@ -158,23 +145,6 @@ const showLoading = (message = "正在验证 Partner 会话，请稍候…") => 
   elements.loadingMessage.textContent = message;
 };
 
-const fetchPartnerSession = async () => {
-  const response = await fetch("/api/sso/session", {
-    method: "GET",
-    headers: { accept: "application/json" },
-    credentials: "include",
-  });
-  const body = await response.json().catch(() => ({}));
-  if (response.status === 401) return null;
-  if (!response.ok) {
-    throw new SuperappEmbedError(
-      body.code ?? "partner_session_unavailable",
-      body.message ?? `Partner Backend returned HTTP ${response.status}`,
-    );
-  }
-  return validateSession(body);
-};
-
 const waitForPageLoad = () => new Promise((resolve) => {
   if (document.readyState === "complete") {
     resolve();
@@ -209,11 +179,12 @@ const authenticate = async ({ automatic = false } = {}) => {
   updateControls(true);
 
   try {
-    const session = validateSession(await sdk.authenticate({
-      bootstrapURL: "/api/sso/bootstrap",
-      completeURL: "/api/sso/complete",
+    const session = await authenticateWithoutSdk({
+      api: partnerApi,
+      bridge: bridgeClient,
+      expectedClientId,
       scopes: requestedScopes,
-    }));
+    });
     elements.ssoStatus.textContent = "SuperApp 登录成功";
     elements.ssoStatus.classList.add("status-good");
     renderProfile(session, copy.successEntry);
@@ -234,8 +205,8 @@ const initialize = async () => {
     if (!expectedClientId || expectedClientId === "__SUPERAPP_CLIENT_ID__") {
       throw new Error("Partner client ID was not injected by the backend");
     }
-    sdk = createSuperappEmbedSDK();
-    const context = await sdk.getContext();
+    bridgeClient = new SuperappBridgeClient();
+    const context = await bridgeClient.getContext();
     if (
       context?.sdk_version !== "1.0" ||
       context?.container !== "superapp" ||
@@ -260,7 +231,7 @@ const initialize = async () => {
   }
 
   try {
-    const session = await fetchPartnerSession();
+    const session = await partnerApi.getSession();
     if (session) {
       renderProfile(session, "Partner 会话自动恢复");
       updateControls();
@@ -287,7 +258,7 @@ for (const button of elements.privacyButtons) {
   button.addEventListener("click", async () => {
     clearError();
     try {
-      await sdk.openPrivacySettings();
+      await bridgeClient.openPrivacySettings();
     } catch (error) {
       showError(error);
     }
@@ -298,7 +269,7 @@ for (const button of elements.closeButtons) {
   button.addEventListener("click", async () => {
     clearError();
     try {
-      await sdk.close();
+      await bridgeClient.close();
     } catch (error) {
       showError(error);
     }

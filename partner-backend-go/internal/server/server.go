@@ -18,15 +18,16 @@ import (
 
 	"github.com/jiguangliandong/superapp-embed-demo/partner-backend-go/internal/config"
 	"github.com/jiguangliandong/superapp-embed-demo/partner-backend-go/internal/session"
-	embedsdk "github.com/jiguangliandong/superapp-embed-go-sdk"
+	"github.com/jiguangliandong/superapp-embed-demo/partner-backend-go/internal/sso"
+	"github.com/jiguangliandong/superapp-embed-demo/partner-backend-go/internal/superapp"
 )
 
 const maxJSONBodyBytes = 64 * 1024
 
 type Server struct {
 	config       config.Config
-	transactions *embedsdk.TransactionManager
-	client       *embedsdk.Client
+	transactions *sso.Manager
+	client       *superapp.Client
 	sessions     *session.Manager
 	logger       *log.Logger
 	handler      http.Handler
@@ -48,7 +49,7 @@ type completeInput struct {
 
 type publicAuthentication struct {
 	Authenticated  bool              `json:"authenticated"`
-	User           embedsdk.UserInfo `json:"user"`
+	User           superapp.UserInfo `json:"user"`
 	Scope          []string          `json:"scope"`
 	ConsentVersion int               `json:"consent_version"`
 	SessionExpires time.Time         `json:"session_expires_at"`
@@ -58,7 +59,7 @@ type storedAuthentication struct {
 	AuthenticatedAt  time.Time
 	ClientID         string
 	OpenID           string
-	User             embedsdk.UserInfo
+	User             superapp.UserInfo
 	Scope            []string
 	ConsentVersion   int
 	AccessToken      string
@@ -104,12 +105,12 @@ func newWithDependencies(
 
 	result := &Server{
 		config: cfg,
-		transactions: embedsdk.NewTransactionManager(
+		transactions: sso.NewManager(
 			cfg.ClientID,
-			embedsdk.NewMemoryTransactionStore(),
+			sso.NewMemoryTransactionStore(),
 			cfg.TransactionTTL,
 		),
-		client: &embedsdk.Client{
+		client: &superapp.Client{
 			BaseURL:    cfg.SuperappBaseURL,
 			ClientID:   cfg.ClientID,
 			KeyID:      cfg.KeyID,
@@ -271,7 +272,7 @@ func (server *Server) complete(response http.ResponseWriter, request *http.Reque
 		server.loginFailure(response, protocolStatus(err))
 		return
 	}
-	scopes, err := validateToken(token)
+	scopes, err := validateToken(token, transaction.Scopes)
 	if err != nil {
 		server.logger.Printf("invalid Superapp token response: %T", err)
 		server.loginFailure(response, http.StatusBadGateway)
@@ -374,7 +375,7 @@ func (server *Server) restoreAuthentication(
 		if err != nil {
 			return storedAuthentication{}, err
 		}
-		scopes, err := validateToken(token)
+		scopes, err := validateToken(token, authentication.Scope)
 		if err != nil || token.OpenID != authentication.OpenID {
 			return storedAuthentication{}, errPartnerSessionExpired
 		}
@@ -409,7 +410,7 @@ func credentialsRejected(err error) bool {
 	if errors.Is(err, errPartnerSessionExpired) {
 		return true
 	}
-	var protocolError *embedsdk.ProtocolError
+	var protocolError *superapp.ProtocolError
 	return errors.As(err, &protocolError) &&
 		(protocolError.Code == "invalid_grant" || protocolError.Code == "invalid_token")
 }
@@ -446,12 +447,12 @@ func (server *Server) loginFailure(response http.ResponseWriter, status int) {
 	})
 }
 
-func validateToken(token embedsdk.Token) ([]string, error) {
+func validateToken(token superapp.Token, expectedScopes []string) ([]string, error) {
 	scopes := strings.Fields(token.Scope)
 	if token.TokenType != "Bearer" || token.AccessToken == "" || token.ExpiresIn <= 0 ||
 		token.RefreshToken == "" || token.RefreshTokenExpiresIn <= 0 ||
 		token.OpenID == "" || token.ConsentVersion <= 0 ||
-		!slices.Contains(scopes, "auth_base") {
+		!slices.Contains(scopes, "auth_base") || len(scopes) != len(expectedScopes) {
 		return nil, errors.New("required token response field is missing")
 	}
 	seen := make(map[string]struct{}, len(scopes))
@@ -461,11 +462,16 @@ func validateToken(token embedsdk.Token) ([]string, error) {
 		}
 		seen[scope] = struct{}{}
 	}
+	for _, expected := range expectedScopes {
+		if _, ok := seen[expected]; !ok {
+			return nil, errors.New("token response scope does not match SSO transaction")
+		}
+	}
 	return scopes, nil
 }
 
 func protocolStatus(err error) int {
-	var protocolError *embedsdk.ProtocolError
+	var protocolError *superapp.ProtocolError
 	if errors.As(err, &protocolError) &&
 		(protocolError.Code == "invalid_grant" || protocolError.Code == "invalid_scope") {
 		return http.StatusBadRequest

@@ -22,7 +22,8 @@ import (
 	"time"
 
 	"github.com/jiguangliandong/superapp-embed-demo/partner-backend-go/internal/config"
-	embedsdk "github.com/jiguangliandong/superapp-embed-go-sdk"
+	"github.com/jiguangliandong/superapp-embed-demo/partner-backend-go/internal/sso"
+	"github.com/jiguangliandong/superapp-embed-demo/partner-backend-go/internal/superapp"
 )
 
 const testClientID = "embcli_test_partner"
@@ -46,7 +47,7 @@ type testEnvironment struct {
 	application *Server
 }
 
-func TestSSOCompletesThroughGoSDK(t *testing.T) {
+func TestSSOCompletesWithoutPartnerSDK(t *testing.T) {
 	environment := newTestEnvironment(t)
 	client := newBrowserClient(t)
 
@@ -102,10 +103,10 @@ func TestSSOCompletesThroughGoSDK(t *testing.T) {
 		t.Fatalf("token endpoint calls = %d, want 1", environment.probe.tokenCalls)
 	}
 	if environment.probe.lastTokenForm.Get("code_verifier") == "" {
-		t.Fatal("Go SDK did not send the server-side PKCE verifier")
+		t.Fatal("Partner Backend did not send the server-side PKCE verifier")
 	}
 	if environment.probe.lastTokenForm.Get("client_assertion") == "" {
-		t.Fatal("Go SDK did not send private_key_jwt client authentication")
+		t.Fatal("Partner Backend did not send private_key_jwt client authentication")
 	}
 }
 
@@ -143,6 +144,7 @@ func TestExpiredAccessTokenIsRefreshedWhileRestoringPartnerSession(t *testing.T)
 	if err := environment.application.sessions.ReplaceAuthentication(sessionID, storedAuthentication{
 		ClientID:         testClientID,
 		OpenID:           "open_test_123",
+		Scope:            []string{"auth_base", "profile.name"},
 		AccessToken:      "expired-access-token",
 		AccessExpiresAt:  time.Now().Add(-time.Minute),
 		RefreshToken:     "refresh-token-secret",
@@ -336,7 +338,7 @@ func (probe *superappProbe) handleToken(t *testing.T, response http.ResponseWrit
 			})
 			return
 		}
-		writeTestJSON(response, http.StatusOK, embedsdk.Token{
+		writeTestJSON(response, http.StatusOK, superapp.Token{
 			TokenType:             "Bearer",
 			AccessToken:           "refreshed-access-token",
 			ExpiresIn:             300,
@@ -367,7 +369,7 @@ func (probe *superappProbe) handleToken(t *testing.T, response http.ResponseWrit
 	verifier := request.PostForm.Get("code_verifier")
 	digest := sha256.Sum256([]byte(verifier))
 	if base64.RawURLEncoding.EncodeToString(digest[:]) != expectedChallenge {
-		t.Error("code_verifier does not match SDK-generated code_challenge")
+		t.Error("code_verifier does not match Partner-generated code_challenge")
 		writeTestJSON(response, http.StatusBadRequest, map[string]any{
 			"error": "invalid_grant", "error_description": "PKCE verification failed",
 		})
@@ -376,14 +378,14 @@ func (probe *superappProbe) handleToken(t *testing.T, response http.ResponseWrit
 	if err := verifyClientAssertion(
 		request.PostForm.Get("client_assertion"), probe.publicKey, probe.tokenEndpoint,
 	); err != nil {
-		t.Errorf("verify Go SDK client assertion: %v", err)
+		t.Errorf("verify Partner client assertion: %v", err)
 		writeTestJSON(response, http.StatusUnauthorized, map[string]any{
 			"error": "invalid_client", "error_description": "client assertion is invalid",
 		})
 		return
 	}
 
-	writeTestJSON(response, http.StatusOK, embedsdk.Token{
+	writeTestJSON(response, http.StatusOK, superapp.Token{
 		TokenType:             "Bearer",
 		AccessToken:           "access-token-secret",
 		ExpiresIn:             300,
@@ -410,7 +412,7 @@ func (probe *superappProbe) handleUserInfo(t *testing.T, response http.ResponseW
 	}
 	displayName := "Demo Customer"
 	email := "demo@example.test"
-	writeTestJSON(response, http.StatusOK, embedsdk.UserInfo{
+	writeTestJSON(response, http.StatusOK, superapp.UserInfo{
 		OpenID:       "open_test_123",
 		DisplayName:  &displayName,
 		ContactEmail: &email,
@@ -483,7 +485,7 @@ func beginTransaction(
 	client *http.Client,
 	partnerURL string,
 	scopes []string,
-) embedsdk.Bootstrap {
+) sso.Bootstrap {
 	t.Helper()
 	status, body := postJSON(t, client, partnerURL+"/api/sso/bootstrap", map[string]any{
 		"scopes": scopes,
@@ -491,7 +493,7 @@ func beginTransaction(
 	if status != http.StatusCreated {
 		t.Fatalf("bootstrap status = %d, body = %s", status, body)
 	}
-	var bootstrap embedsdk.Bootstrap
+	var bootstrap sso.Bootstrap
 	if err := json.Unmarshal(body, &bootstrap); err != nil {
 		t.Fatalf("decode bootstrap: %v", err)
 	}
