@@ -14,6 +14,13 @@ Manifest → H5 请求 Native Bridge 授权 → Go Backend 兑换 Code、查询 
 [`SuperApp Embed SSO 三方接入指南（无 SDK 版）`](docs/superapp-embed-sso-partner-integration-no-sdk.md)，
 按照 Native Bridge、PKCE、`private_key_jwt` 和 OAuth Endpoint 契约自行实现。
 
+SuperApp Android 客户端团队可参考
+[`SuperApp Embed SSO Android 接入指南`](docs/superapp-embed-sso-android-integration-guide.md)，
+实现 Launch Manifest 验签、受控 WebView、Native Bridge、原生 Consent 和授权管理。
+
+WeTix 的前期资料收集、Sandbox Client 创建、公钥登记和激活流程见
+[`WeTix Partner Embed SSO 前期入驻与联调准备`](docs/wetix-partner-onboarding-guide.md)。
+
 ## 1. 一次性配置
 
 除非代码块另有说明，下面的项目命令都从仓库根目录执行：

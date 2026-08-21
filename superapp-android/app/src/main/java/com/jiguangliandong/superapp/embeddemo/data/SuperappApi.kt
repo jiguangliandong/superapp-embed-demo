@@ -3,6 +3,7 @@ package com.jiguangliandong.superapp.embeddemo.data
 import com.jiguangliandong.superapp.embeddemo.BuildConfig
 import java.io.BufferedReader
 import java.net.HttpURLConnection
+import java.net.Proxy
 import java.net.URI
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -118,7 +119,10 @@ class SuperappApi(
         token: String? = null,
         body: JSONObject? = null,
     ): JSONObject = withContext(Dispatchers.IO) {
-        val connection = URI(url).toURL().openConnection() as HttpURLConnection
+        // SuperApp Backend is reached through adb reverse on localhost:8080.
+        // Bypass the emulator's global proxy explicitly; the proxy is only needed
+        // by WebView when it opens the public Partner H5/ngrok URL.
+        val connection = URI(url).toURL().openConnection(Proxy.NO_PROXY) as HttpURLConnection
         try {
             connection.requestMethod = method
             connection.connectTimeout = 10_000
