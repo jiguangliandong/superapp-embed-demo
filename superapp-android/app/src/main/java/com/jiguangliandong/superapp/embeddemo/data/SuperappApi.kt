@@ -17,18 +17,38 @@ class SuperappApi(
     private val baseUrl: String = BuildConfig.SUPERAPP_BASE_URL,
     private val jwksUrl: String = BuildConfig.EMBED_JWKS_URL,
 ) {
-    suspend fun login(
-        identifier: String,
-        password: String,
+    suspend fun createOTPChallenge(
+        phoneNumber: String,
+        deviceId: String,
+    ): OTPChallenge {
+        val body = JSONObject()
+            .put("country_code", "+60")
+            .put("phone_number", phoneNumber)
+            .put("device_id", deviceId)
+        val json = request("POST", "$baseUrl/api/user/v1/customer/auth/otp/challenges", body = body)
+        return OTPChallenge(
+            challengeId = json.requireText("challenge_id"),
+            phoneMasked = json.requireText("phone_masked"),
+            expiresAt = Instant.parse(json.requireText("expires_at")),
+        )
+    }
+
+    suspend fun verifyOTP(
+        challengeId: String,
+        phoneNumber: String,
+        code: String,
         deviceId: String,
         deviceName: String,
     ): CustomerSession {
         val body = JSONObject()
-            .put("identifier", identifier)
-            .put("password", password)
+            .put("challenge_id", challengeId)
+            .put("country_code", "+60")
+            .put("phone_number", phoneNumber)
+            .put("code", code)
             .put("device_id", deviceId)
             .put("device_name", deviceName)
-        val json = request("POST", "$baseUrl/api/customer/v1/auth/login", body = body)
+            .put("system_type", "android")
+        val json = request("POST", "$baseUrl/api/user/v1/customer/auth/otp/verifications", body = body)
         return CustomerSession(
             accessToken = json.requireText("access_token"),
             expiresAt = Instant.parse(json.requireText("expires_at")),
@@ -40,7 +60,7 @@ class SuperappApi(
         val encodedClientId = URLEncoder.encode(clientId, StandardCharsets.UTF_8.name())
         val json = request(
             "GET",
-            "$baseUrl/api/customer/v1/embed/apps/$encodedClientId/launch-manifest",
+            "$baseUrl/api/user/v1/customer/embed/apps/$encodedClientId/launch-manifest",
             token,
         )
         return LaunchManifest(
@@ -79,7 +99,7 @@ class SuperappApi(
             .put("consent_approved", consentApproved)
         val json = request(
             "POST",
-            "$baseUrl/api/customer/v1/embed/authorization-codes",
+            "$baseUrl/api/user/v1/customer/embed/authorization-codes",
             token,
             body,
         )
@@ -91,7 +111,7 @@ class SuperappApi(
     }
 
     suspend fun listAuthorizations(token: String): List<EmbedConsent> {
-        val json = request("GET", "$baseUrl/api/customer/v1/embed/authorizations", token)
+        val json = request("GET", "$baseUrl/api/user/v1/customer/embed/authorizations", token)
         val items = json.getJSONArray("items")
         return (0 until items.length()).map { index ->
             val item = items.getJSONObject(index)
@@ -110,7 +130,7 @@ class SuperappApi(
     suspend fun revokeAuthorization(token: String, clientId: String) {
         @Suppress("DEPRECATION")
         val encodedClientId = URLEncoder.encode(clientId, StandardCharsets.UTF_8.name())
-        request("DELETE", "$baseUrl/api/customer/v1/embed/authorizations/$encodedClientId", token)
+        request("DELETE", "$baseUrl/api/user/v1/customer/embed/authorizations/$encodedClientId", token)
     }
 
     private suspend fun request(
@@ -119,9 +139,8 @@ class SuperappApi(
         token: String? = null,
         body: JSONObject? = null,
     ): JSONObject = withContext(Dispatchers.IO) {
-        // SuperApp Backend is reached through adb reverse on localhost:8080.
-        // Bypass the emulator's global proxy explicitly; the proxy is only needed
-        // by WebView when it opens the public Partner H5/ngrok URL.
+        // Bypass the emulator's global proxy for User Center HTTP.
+        // The proxy is only needed by WebView when it opens the public Partner H5/ngrok URL.
         val connection = URI(url).toURL().openConnection(Proxy.NO_PROXY) as HttpURLConnection
         try {
             connection.requestMethod = method

@@ -1,12 +1,12 @@
 # SuperApp Android Client
 
 原生 Kotlin + Jetpack Compose 联调客户端。它不是任意 URL 浏览器：点击金刚位时先向
-SuperApp Backend 获取短期 Launch Manifest，使用 JWKS 验证 ES256 签名及全部关键字段，
+User Center 获取短期 Launch Manifest，使用 JWKS 验证 ES256 签名及全部关键字段，
 验证通过后才创建受控 WebView。
 
 ## 已实现
 
-- Customer 手机号/邮箱和密码登录，Token 仅保存在进程内存；
+- Customer +60 手机号 OTP 登录，Token 仅保存在进程内存；
 - 金刚位入口与短期 Launch Manifest；
 - ES256、`kid`、P-256、issuer、audience、subject、时效和外层字段一致性校验；
 - 精确 Origin 导航限制和 document-start Promise Bridge；
@@ -21,17 +21,14 @@ SuperApp Backend 获取短期 Launch Manifest，使用 JWKS 验证 ES256 签名�
 联调常量在 `app/build.gradle.kts`：
 
 ```kotlin
-SUPERAPP_BASE_URL = "http://localhost:8080"
-EMBED_ISSUER = "http://localhost:8080"
-EMBED_JWKS_URL = "http://localhost:8080/.well-known/jwks.json"
-EMBED_CLIENT_ID = "embcli_01KZAW57KCCWDTV9QXSPEZV8A7"
+SUPERAPP_BASE_URL = "http://superapp-dev.jiguang.top"
+EMBED_ISSUER = "http://superapp-dev.jiguang.top"
+EMBED_JWKS_URL = "http://superapp-dev.jiguang.top/.well-known/jwks.json"
+EMBED_CLIENT_ID = "embcli_01M1DM7301JCH8NDJMDN5AEEC2"
 ```
 
-模拟器或 USB 设备联调前执行：
-
-```bash
-adb reverse tcp:8080 tcp:8080
-```
+模拟器或 USB 设备需要能解析并访问 `superapp-dev.jiguang.top`。只有把上述三项改回
+`http://localhost:8081` 做纯本地联调时，才执行 `adb reverse tcp:8081 tcp:8081`。
 
 真实测试/生产包应把 SuperApp API、Issuer 和 JWKS 全部替换为公网 HTTPS 地址，并保留
 release Manifest 的明文流量禁用策略。

@@ -2,7 +2,7 @@ module github.com/jiguangliandong/superapp-embed-demo/partner-backend-go
 
 go 1.26.0
 
-require github.com/jiguangliandong/superapp-embed-go-sdk v0.0.2
+require github.com/jiguangliandong/superapp-embed-go-sdk v0.0.3
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
