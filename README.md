@@ -3,8 +3,8 @@
 本仓库用三个彼此隔离的目录演示完整 SSO：
 
 - `superapp-android`：原生 Kotlin/Compose 宿主客户端；
-- `partner-h5-js`：使用本地 `@superapp/embed-sdk`（`file:../../superapp-embed-js-sdk`）的 H5；
-- `partner-backend-go`：使用本地 `superapp-embed-go-sdk`（`replace => ../../superapp-embed-go-sdk`）的 Partner Backend。
+- `partner-h5-js`：使用 `@superapp/embed-sdk` `v0.0.2` 的 H5；
+- `partner-backend-go`：使用 `superapp-embed-go-sdk` `v0.0.3` 的 Partner Backend。
 
 身份与 Embed 权威在同级 `user-center`（当前联调 Issuer 为
 `http://superapp-dev.jiguang.top`），不再走业务单体的
