@@ -139,9 +139,8 @@ class SuperappApi(
         token: String? = null,
         body: JSONObject? = null,
     ): JSONObject = withContext(Dispatchers.IO) {
-        // SuperApp Backend is reached through adb reverse on localhost:8080.
-        // Bypass the emulator's global proxy explicitly; the proxy is only needed
-        // by WebView when it opens the public Partner H5/ngrok URL.
+        // Bypass the emulator's global proxy for User Center HTTP.
+        // The proxy is only needed by WebView when it opens the public Partner H5/ngrok URL.
         val connection = URI(url).toURL().openConnection(Proxy.NO_PROXY) as HttpURLConnection
         try {
             connection.requestMethod = method

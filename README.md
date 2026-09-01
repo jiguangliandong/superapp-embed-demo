@@ -4,6 +4,7 @@
 
 - `superapp-android`：原生 Kotlin/Compose 宿主客户端；
 - `partner-h5-js`：使用 `@superapp/embed-sdk` `v0.0.2` 的 H5；
+- `partner-h5-js2`：第二个 Partner H5（存储隔离演示），同样使用 `@superapp/embed-sdk` `v0.0.2`；
 - `partner-backend-go`：使用 `superapp-embed-go-sdk` `v0.0.3` 的 Partner Backend。
 
 身份与 Embed 权威在同级 `user-center`（当前联调 Issuer 为
@@ -84,10 +85,15 @@ cd /path/to/superapp-h5-sso-demo
 npm --prefix partner-h5-js install
 npm --prefix partner-h5-js test
 npm --prefix partner-h5-js run build
+
+npm --prefix partner-h5-js2 install
+npm --prefix partner-h5-js2 test
+npm --prefix partner-h5-js2 run build
 ```
 
-H5 产物输出到 `partner-h5-js/dist/`。修改 H5 后需要重新执行 `npm run build`，并重启
-Partner Go Backend，因为 Go 服务启动时会把 `app.html` 读入内存。
+H5 产物输出到 `partner-h5-js/dist/` 与 `partner-h5-js2/dist/`。修改 H5 后需要重新执行 `npm run build`，并重启
+Partner Go Backend，因为 Go 服务启动时会把 `app.html` 读入内存。第二个 Partner 使用独立
+`PORT` / `SUPERAPP_CLIENT_ID` / `PARTNER_H5_DIST_DIR`。
 
 ### 2.2 Android APK
 
