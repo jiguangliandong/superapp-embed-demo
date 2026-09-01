@@ -56,7 +56,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
@@ -129,8 +128,11 @@ private fun SuperappApp(
             AppScreen.LOGIN -> LoginScreen(
                 busy = state.busy,
                 message = state.message,
-                onLogin = { identifier, password ->
-                    viewModel.login(identifier, password, deviceId, "Android SSO Demo")
+                onRequestOtp = { phone ->
+                    viewModel.requestOTP(phone, deviceId)
+                },
+                onLogin = { phone, code ->
+                    viewModel.login(phone, code, deviceId, "Android SSO Demo")
                 },
             )
             AppScreen.HOME -> HomeScreen(
@@ -184,10 +186,11 @@ private fun SuperappApp(
 private fun LoginScreen(
     busy: Boolean,
     message: String?,
+    onRequestOtp: (String) -> Unit,
     onLogin: (String, String) -> Unit,
 ) {
-    var identifier by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
+    var phoneNumber by rememberSaveable { mutableStateOf("") }
+    var code by rememberSaveable { mutableStateOf("") }
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
         verticalArrangement = Arrangement.Center,
@@ -199,34 +202,39 @@ private fun LoginScreen(
         Spacer(Modifier.height(24.dp))
         Text("登录 SuperApp", fontSize = 30.sp, fontWeight = FontWeight.Bold)
         Text(
-            "使用 Customer 账号登录，再从金刚位进入 Partner H5 完成端到端 SSO。",
+            "使用 +60 手机号 OTP 登录用户中心，再从金刚位进入 Partner H5 完成端到端 SSO。",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 10.dp, bottom = 28.dp),
         )
         OutlinedTextField(
-            value = identifier,
-            onValueChange = { identifier = it },
-            label = { Text("手机号或邮箱") },
+            value = phoneNumber,
+            onValueChange = { phoneNumber = it },
+            label = { Text("马来西亚手机号（不含 +60）") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(14.dp))
         OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("密码") },
+            value = code,
+            onValueChange = { code = it },
+            label = { Text("六位验证码") },
             singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
         )
         Message(message)
+        OutlinedButton(
+            onClick = { onRequestOtp(phoneNumber) },
+            enabled = !busy,
+            modifier = Modifier.fillMaxWidth().height(52.dp),
+        ) { Text("发送验证码") }
+        Spacer(Modifier.height(10.dp))
         Button(
-            onClick = { onLogin(identifier, password) },
+            onClick = { onLogin(phoneNumber, code) },
             enabled = !busy,
             modifier = Modifier.fillMaxWidth().height(52.dp),
         ) { Text("登录") }
         Text(
-            "Customer Token 仅保存在本次 App 进程内，不会注入 H5。",
+            "local/dev 验证码是规范化 E.164 手机号的后六位。Customer Token 仅保存在本次 App 进程内，不会注入 H5。",
             fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 16.dp),

@@ -121,7 +121,7 @@ class LaunchManifestVerifierTest {
     }
 
     private companion object {
-        const val ISSUER = "http://localhost:8080"
+        const val ISSUER = "http://localhost:8081"
         const val CLIENT_ID = "embcli_demo"
     }
 }

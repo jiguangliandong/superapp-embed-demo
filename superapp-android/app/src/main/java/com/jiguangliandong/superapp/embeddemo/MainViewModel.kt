@@ -46,17 +46,50 @@ class MainViewModel(
     val consentPrompt: StateFlow<ConsentPrompt?> = _consentPrompt.asStateFlow()
 
     private var session: CustomerSession? = null
+    private var otpChallengeId: String? = null
+    private var otpPhoneNumber: String? = null
 
-    fun login(identifier: String, password: String, deviceId: String, deviceName: String) {
-        if (identifier.isBlank() || password.length < 8) {
-            setMessage("请输入有效的手机号/邮箱和至少 8 位密码")
+    fun requestOTP(phoneNumber: String, deviceId: String) {
+        val phone = phoneNumber.trim()
+        if (phone.isBlank()) {
+            setMessage("请输入马来西亚手机号（不含国家区号）")
             return
         }
         viewModelScope.launch {
             setBusy(true)
-            runCatching { api.login(identifier.trim(), password, deviceId, deviceName) }
+            runCatching { api.createOTPChallenge(phone, deviceId) }
+                .onSuccess { challenge ->
+                    otpChallengeId = challenge.challengeId
+                    otpPhoneNumber = phone
+                    _uiState.value = _uiState.value.copy(
+                        busy = false,
+                        message = "验证码已发送至 ${challenge.phoneMasked}。local/dev 为该号码后六位。",
+                    )
+                }
+                .onFailure { setFailure("发送验证码失败", it) }
+            setBusy(false)
+        }
+    }
+
+    fun login(phoneNumber: String, code: String, deviceId: String, deviceName: String) {
+        val phone = phoneNumber.trim()
+        val otp = code.trim()
+        val challengeId = otpChallengeId
+        if (phone.isBlank() || otp.length != 6 || otp.any { !it.isDigit() }) {
+            setMessage("请输入手机号和六位数字验证码")
+            return
+        }
+        if (challengeId == null || otpPhoneNumber != phone) {
+            setMessage("请先为当前手机号获取验证码")
+            return
+        }
+        viewModelScope.launch {
+            setBusy(true)
+            runCatching { api.verifyOTP(challengeId, phone, otp, deviceId, deviceName) }
                 .onSuccess {
                     session = it
+                    otpChallengeId = null
+                    otpPhoneNumber = null
                     _uiState.value = AppUiState(screen = AppScreen.HOME)
                 }
                 .onFailure { setFailure("登录失败", it) }
@@ -142,6 +175,8 @@ class MainViewModel(
     fun logout() {
         denyConsent()
         session = null
+        otpChallengeId = null
+        otpPhoneNumber = null
         _uiState.value = AppUiState()
     }
 

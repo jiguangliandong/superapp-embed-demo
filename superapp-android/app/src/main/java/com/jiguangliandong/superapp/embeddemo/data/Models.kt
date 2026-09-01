@@ -7,6 +7,12 @@ data class CustomerSession(
     val expiresAt: Instant,
 )
 
+data class OTPChallenge(
+    val challengeId: String,
+    val phoneMasked: String,
+    val expiresAt: Instant,
+)
+
 data class LaunchManifest(
     val launchId: String,
     val clientId: String,

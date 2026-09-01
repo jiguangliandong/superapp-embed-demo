@@ -9,11 +9,11 @@ import {
   SuperappEmbedError,
 } from "@superapp/embed-sdk";
 
-test("uses JavaScript SDK v0.0.1", async () => {
+test("uses JavaScript SDK v0.0.2", async () => {
   const sdkEntryPath = fileURLToPath(import.meta.resolve("@superapp/embed-sdk"));
   const packagePath = resolve(dirname(sdkEntryPath), "..", "package.json");
   const packageJSON = JSON.parse(await readFile(packagePath, "utf8"));
-  assert.equal(packageJSON.version, "0.0.1");
+  assert.equal(packageJSON.version, "0.0.2");
 });
 
 test("initial page shows only a neutral session restoration state", async () => {
