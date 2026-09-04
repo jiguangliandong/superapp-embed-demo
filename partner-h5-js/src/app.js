@@ -11,6 +11,9 @@ const requestedScopes = [
   "kyc.status",
 ];
 
+// 首次授权包含用户阅读和确认原生 Consent 的时间，不能沿用短请求默认超时。
+const interactiveAuthorizationTimeoutMs = 121_000;
+
 const expectedClientId = document
   .querySelector('meta[name="superapp-client-id"]')
   ?.getAttribute("content");
@@ -234,7 +237,7 @@ const initialize = async () => {
     if (!expectedClientId || expectedClientId === "__SUPERAPP_CLIENT_ID__") {
       throw new Error("Partner client ID was not injected by the backend");
     }
-    sdk = createSuperappEmbedSDK();
+    sdk = createSuperappEmbedSDK({ timeoutMs: interactiveAuthorizationTimeoutMs });
     const context = await sdk.getContext();
     if (
       context?.sdk_version !== "1.0" ||

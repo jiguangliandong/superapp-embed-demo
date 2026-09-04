@@ -21,13 +21,13 @@ User Center 获取短期 Launch Manifest，使用 JWKS 验证 ES256 签名及全
 联调常量在 `app/build.gradle.kts`：
 
 ```kotlin
-SUPERAPP_BASE_URL = "http://superapp-dev.jiguang.top"
-EMBED_ISSUER = "http://superapp-dev.jiguang.top"
-EMBED_JWKS_URL = "http://superapp-dev.jiguang.top/.well-known/jwks.json"
-EMBED_CLIENT_ID = "embcli_01M1DM7301JCH8NDJMDN5AEEC2"
+SUPERAPP_BASE_URL = "https://superapp-test.jiguang.top"
+EMBED_ISSUER = "https://superapp-test.jiguang.top"
+EMBED_JWKS_URL = "https://superapp-test.jiguang.top/.well-known/jwks.json"
+EMBED_CLIENT_ID = "embcli_01M0HK4MQG8YBAG06K9DP44RQR"
 ```
 
-模拟器或 USB 设备需要能解析并访问 `superapp-dev.jiguang.top`。只有把上述三项改回
+模拟器或 USB 设备需要能解析并访问 `superapp-test.jiguang.top`。只有把上述三项改回
 `http://localhost:8081` 做纯本地联调时，才执行 `adb reverse tcp:8081 tcp:8081`。
 
 真实测试/生产包应把 SuperApp API、Issuer 和 JWKS 全部替换为公网 HTTPS 地址，并保留
