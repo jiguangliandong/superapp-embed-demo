@@ -5,12 +5,14 @@
 - `superapp-android`：原生 Kotlin/Compose 宿主客户端；
 - `partner-h5-js`：使用 `@superapp/embed-sdk` `v0.0.2` 的 H5；
 - `partner-h5-js2`：第二个 Partner H5（存储隔离演示），同样使用 `@superapp/embed-sdk` `v0.0.2`；
-- `partner-backend-go`：使用 `superapp-embed-go-sdk` `v0.0.3` 的 Partner Backend。
+- `partner-backend-go`：使用 `superapp-embed-go-sdk` `v0.0.4` 的 Partner Backend。
 
-身份与 Embed 权威在同级 `user-center`（当前联调 Issuer 为
-`http://superapp-dev.jiguang.top`），不再走业务单体的
-旧 `/api/customer/v1`、`/api/embed/v1` 路径。按步骤的联调走查见
+身份与 Embed 权威在同级 `user-center`（当前测试环境 Issuer 为
+`https://superapp-test.jiguang.top`），Partner Backend 机器接口统一走
+`/api/user/v1/open/embed/*`。按步骤的联调走查见
 [eastel-backend/docs/user/embed-h5-sso-runbook.md](../eastel-backend/docs/user/embed-h5-sso-runbook.md)。
+本次新测试环境迁移的实际修改、IM/Partner 影响与验收结果见
+[新测试环境 SSO 迁移与 Partner H5 联调交付记录](docs/test-environment-reintegration-20260903.md)。
 
 最终路径是：Customer OTP 登录 Android App → 点击金刚位 → App 获取并验签 Launch
 Manifest → H5 请求 Native Bridge 授权 → Go Backend 兑换 Code、查询 UserInfo → H5
@@ -24,8 +26,8 @@ SuperApp Android 客户端团队可参考
 [`SuperApp Embed SSO Android 接入指南`](docs/superapp-embed-sso-android-integration-guide.md)，
 实现 Launch Manifest 验签、受控 WebView、Native Bridge、原生 Consent 和授权管理。
 
-WeTix 的前期资料收集、Sandbox Client 创建、公钥登记和激活流程见
-[`WeTix Partner Embed SSO 前期入驻与联调准备`](docs/wetix-partner-onboarding-guide.md)。
+面向所有 Partner 的准入资料清单、密钥生成脚本、完成判定和回执模板见
+[`Partner Embed SSO 技术准入说明`](docs/partner-onboarding-information-and-acceptance.md)。
 
 ## 1. 一次性配置
 
@@ -35,7 +37,7 @@ WeTix 的前期资料收集、Sandbox Client 创建、公钥登记和激活流�
 cd /path/to/superapp-h5-sso-demo
 ```
 
-User Center 通过 `http://superapp-dev.jiguang.top` 访问。Embed Client 的 `origin` 和 `launch_url`
+User Center 通过 `https://superapp-test.jiguang.top` 访问。Embed Client 的 `origin` 和 `launch_url`
 必须配置为 Partner H5 的公网 HTTPS 地址，例如：
 
 ```text
@@ -55,7 +57,7 @@ test -f secrets/partner-es256-private.pem
 ```
 
 Partner `.env` 的 `SUPERAPP_BASE_URL` 必须等于 User Center Issuer origin
-（当前为 `http://superapp-dev.jiguang.top`），否则 `private_key_jwt` 的 `aud` 会校验失败。
+（当前为 `https://superapp-test.jiguang.top`），否则 `private_key_jwt` 的 `aud` 会校验失败。
 
 ### 1.1 Android 命令行环境
 
@@ -163,7 +165,7 @@ ngrok http --url=<your-domain> 3000
 adb devices
 ```
 
-没有设备时启动模拟器。当前构建直接访问 `superapp-dev.jiguang.top`，模拟器必须能解析并
+没有设备时启动模拟器。当前构建直接访问 `superapp-test.jiguang.top`，模拟器必须能解析并
 访问该域名；只有把 Issuer 改回 `http://localhost:8081` 做纯本地联调时才需要
 `adb reverse tcp:8081 tcp:8081`。
 
@@ -176,8 +178,8 @@ adb shell am start -W -n \
 
 ## 4. 联调行为
 
-使用 +60 手机号 OTP 登录。local/dev 验证码是规范化 E.164 的后六位，例如
-`123456789` → `+60123456789` → `345678`。然后点击“Partner SSO Demo”金刚位。
+使用 +60 手机号 OTP 登录。当前测试交付环境验证码是规范化 E.164 的后六位，例如
+`123456780` → `+60123456780` → `456780`。然后点击“Partner SSO Demo”金刚位。
 
 第一次申请资料会展示原生授权弹窗；同意后 H5 切换到独立的用户信息界面。再次打开时：
 

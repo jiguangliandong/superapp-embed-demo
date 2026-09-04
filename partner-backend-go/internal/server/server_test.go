@@ -280,16 +280,16 @@ func newTestEnvironment(t *testing.T) testEnvironment {
 	probe := &superappProbe{publicKey: &privateKey.PublicKey}
 	superapp := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
 		switch request.URL.Path {
-		case "/api/user/v1/embed/oauth/token":
+		case "/api/user/v1/open/embed/oauth/token":
 			probe.handleToken(t, response, request)
-		case "/api/user/v1/embed/userinfo":
+		case "/api/user/v1/open/embed/userinfo":
 			probe.handleUserInfo(t, response, request)
 		default:
 			http.NotFound(response, request)
 		}
 	}))
 	t.Cleanup(superapp.Close)
-	probe.tokenEndpoint = superapp.URL + "/api/user/v1/embed/oauth/token"
+	probe.tokenEndpoint = superapp.URL + "/api/user/v1/open/embed/oauth/token"
 
 	cfg := config.Config{
 		SuperappBaseURL: superapp.URL,

@@ -322,7 +322,9 @@ private class PartnerWebViewController(
                         if (!item) return;
                         pending.delete(request_id);
                         item.reject(Object.assign(new Error('Bridge timeout'), { code: 'bridge_timeout' }));
-                      }, 14000);
+                      // getAuthCode may display native Consent; leave enough time for the user
+                      // to review it. The H5 SDK timeout is intentionally slightly longer.
+                      }, 120000);
                     });
                   }
                 })

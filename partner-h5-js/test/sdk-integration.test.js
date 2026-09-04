@@ -62,6 +62,14 @@ test("automatic SSO uses consent-neutral copy until SuperApp decides", async () 
   assert.match(source, /Partner 会话自动恢复/);
 });
 
+test("interactive authorization allows enough time for native consent", async () => {
+  const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+  const source = await readFile(resolve(projectRoot, "src", "app.js"), "utf8");
+
+  assert.match(source, /interactiveAuthorizationTimeoutMs = 121_000/);
+  assert.match(source, /createSuperappEmbedSDK\(\{ timeoutMs: interactiveAuthorizationTimeoutMs \}\)/);
+});
+
 test("authenticate connects bootstrap, Native Bridge and complete without exposing PKCE verifier", async () => {
   const requests = [];
   const bridgeCalls = [];
