@@ -202,7 +202,7 @@ private fun LoginScreen(
         Spacer(Modifier.height(24.dp))
         Text("登录 SuperApp", fontSize = 30.sp, fontWeight = FontWeight.Bold)
         Text(
-            "使用 +60 手机号 OTP 登录用户中心，再从金刚位进入 Partner H5 完成端到端 SSO。",
+            "使用 +60 手机号 OTP 登录用户中心，再从金刚位进入内部 H5 完成静默 SSO。",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 10.dp, bottom = 28.dp),
         )
@@ -255,7 +255,7 @@ private fun HomeScreen(
             DemoTopBar(
                 title = "SuperApp",
                 actions = {
-                    IconButton(onClick = onPrivacy) { Icon(Icons.Default.Security, "隐私授权") }
+                    IconButton(onClick = onPrivacy) { Icon(Icons.Default.Security, "应用数据访问") }
                     IconButton(onClick = onLogout) { Icon(Icons.AutoMirrored.Filled.Logout, "退出登录") }
                 },
             )
@@ -285,8 +285,8 @@ private fun HomeScreen(
                     ) { Icon(Icons.Default.Apps, null, tint = Color(0xFF3557D5), modifier = Modifier.size(30.dp)) }
                     Spacer(Modifier.width(16.dp))
                     Column(Modifier.weight(1f)) {
-                        Text("Partner SSO Demo", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
-                        Text("授权后在 H5 展示用户信息", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("内部 H5 SSO Demo", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                        Text("无需确认授权，自动登录并展示用户信息", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Icon(Icons.Default.OpenInBrowser, null, tint = Color(0xFF3557D5))
                 }
@@ -331,7 +331,7 @@ private fun PrivacyScreen(
     Scaffold(
         topBar = {
             DemoTopBar(
-                title = "已授权应用",
+                title = "应用数据访问",
                 navigation = {
                     IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回") }
                 },
@@ -342,8 +342,8 @@ private fun PrivacyScreen(
             Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
         ) {
             if (state.consents.isEmpty()) {
-                Text("暂无第三方授权", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-                Text("首次授权后会显示在这里。", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("暂无应用访问记录", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                Text("内部应用完成 SSO 后会显示在这里。", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             state.consents.forEach { item ->
                 ConsentCard(item, { pendingRevoke = item }, { onOpenUrl(item.privacyPolicyUrl) })
@@ -355,10 +355,10 @@ private fun PrivacyScreen(
     pendingRevoke?.let { item ->
         AlertDialog(
             onDismissRequest = { pendingRevoke = null },
-            title = { Text("撤销 ${item.clientName} 的授权？") },
-            text = { Text("撤销后再次使用相关资料时，需要重新确认授权。") },
+            title = { Text("清除 ${item.clientName} 的当前访问？") },
+            text = { Text("这会使当前令牌失效；内部应用下次打开时会按管理员准入策略重新建立访问。") },
             confirmButton = {
-                TextButton(onClick = { pendingRevoke = null; onRevoke(item) }) { Text("确认撤销") }
+                TextButton(onClick = { pendingRevoke = null; onRevoke(item) }) { Text("确认清除") }
             },
             dismissButton = { TextButton(onClick = { pendingRevoke = null }) { Text("取消") } },
         )
@@ -373,7 +373,7 @@ private fun ConsentCard(item: EmbedConsent, onRevoke: () -> Unit, onPrivacy: () 
         Column(Modifier.fillMaxWidth().padding(18.dp)) {
             Text(item.clientName, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
             Text(
-                "授权于 ${formatter.format(item.grantedAt)} · 条款 v${item.consentVersion}",
+                "访问建立于 ${formatter.format(item.grantedAt)} · 策略 v${item.consentVersion}",
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -382,9 +382,9 @@ private fun ConsentCard(item: EmbedConsent, onRevoke: () -> Unit, onPrivacy: () 
                 modifier = Modifier.padding(vertical = 14.dp),
             )
             Row {
-                OutlinedButton(onClick = onPrivacy) { Text("隐私政策") }
+                OutlinedButton(onClick = onPrivacy) { Text("数据说明") }
                 Spacer(Modifier.width(10.dp))
-                TextButton(onClick = onRevoke) { Text("撤销授权", color = MaterialTheme.colorScheme.error) }
+                TextButton(onClick = onRevoke) { Text("清除访问", color = MaterialTheme.colorScheme.error) }
             }
         }
     }
@@ -407,8 +407,8 @@ private fun ConsentDialog(
                 Spacer(Modifier.height(12.dp))
                 prompt.scopes.forEach { Text("• ${scopeLabel(it)}：${scopePurpose(it)}") }
                 Spacer(Modifier.height(12.dp))
-                Text("你可以随时在“隐私授权”中撤销。", fontSize = 13.sp)
-                TextButton(onClick = onPrivacy) { Text("查看 Partner 隐私政策") }
+                Text("你可以在“应用数据访问”中清除当前访问。", fontSize = 13.sp)
+                TextButton(onClick = onPrivacy) { Text("查看应用数据说明") }
             }
         },
         confirmButton = { Button(onClick = onApprove) { Text("同意并继续") } },
@@ -456,9 +456,9 @@ private fun scopeLabel(scope: String): String = when (scope) {
 }
 
 private fun scopePurpose(scope: String): String = when (scope) {
-    "auth_base" -> "识别你在 Partner 中的账号"
-    "profile.name" -> "在 Partner 页面展示称呼"
-    "profile.avatar" -> "在 Partner 页面展示头像"
+    "auth_base" -> "识别你在当前内部应用中的账号"
+    "profile.name" -> "在内部应用页面展示称呼"
+    "profile.avatar" -> "在内部应用页面展示头像"
     "contact.phone" -> "展示已验证的联系方式"
     "contact.email" -> "展示已验证的联系方式"
     "kyc.status" -> "展示是否已完成实名认证"

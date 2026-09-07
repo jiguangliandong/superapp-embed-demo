@@ -1,22 +1,25 @@
-# SuperApp Embed SSO 端到端 Demo
+# SuperApp 内部 H5 静默 SSO 端到端 Demo
 
-本仓库用三个彼此隔离的目录演示完整 SSO：
+> 本分支 `feat/internal-h5-silent-sso` 专门演示内部 H5 的静默 SSO，不合并回 `main`。
+
+本仓库用彼此隔离的目录演示完整 SSO：
 
 - `superapp-android`：原生 Kotlin/Compose 宿主客户端；
-- `partner-h5-js`：使用 `@superapp/embed-sdk` `v0.0.2` 的 H5；
-- `partner-h5-js2`：第二个 Partner H5（存储隔离演示），同样使用 `@superapp/embed-sdk` `v0.0.2`；
-- `partner-backend-go`：使用 `superapp-embed-go-sdk` `v0.0.4` 的 Partner Backend。
+- `partner-h5-js`：使用 `@superapp/embed-sdk` `v0.0.2` 的内部 H5；
+- `partner-h5-js2`：第二个内部 H5（存储隔离演示），同样使用 `@superapp/embed-sdk` `v0.0.2`；
+- `partner-backend-go`：使用 `superapp-embed-go-sdk` `v0.0.4` 的内部 H5 Backend。
 
-身份与 Embed 权威在同级 `user-center`（当前测试环境 Issuer 为
-`https://superapp-test.jiguang.top`），Partner Backend 机器接口统一走
+身份与 Embed 权威在同级 `user-center`（当前本地环境 Issuer 为
+`http://superapp-dev.jiguang.top`），内部 H5 Backend 机器接口统一走
 `/api/user/v1/open/embed/*`。按步骤的联调走查见
-[eastel-backend/docs/user/embed-h5-sso-runbook.md](../eastel-backend/docs/user/embed-h5-sso-runbook.md)。
+[内部 H5 静默 SSO 接入指南](../user-center/docs/internal-h5-silent-sso-integration.md)。
 本次新测试环境迁移的实际修改、IM/Partner 影响与验收结果见
 [新测试环境 SSO 迁移与 Partner H5 联调交付记录](docs/test-environment-reintegration-20260903.md)。
 
-最终路径是：Customer OTP 登录 Android App → 点击金刚位 → App 获取并验签 Launch
-Manifest → H5 请求 Native Bridge 授权 → Go Backend 兑换 Code、查询 UserInfo → H5
-展示昵称、OpenID、手机号、邮箱和 KYC 状态。
+最终路径是：Customer 登录 Android App → 点击内部服务金刚位 → App 获取并验签 Launch
+Manifest → H5 自动请求 Native Bridge → User Center 按内部 Client 准入范围静默签发
+Code → Go Backend 兑换 Code、查询 UserInfo → H5 展示用户信息。流程中不出现用户
+Consent 确认框。
 
 如果 Partner 不引入 JavaScript SDK 和服务端 SDK，可直接参考
 [`SuperApp Embed SSO 三方接入指南（无 SDK 版）`](docs/superapp-embed-sso-partner-integration-no-sdk.md)，
@@ -37,12 +40,12 @@ SuperApp Android 客户端团队可参考
 cd /path/to/superapp-h5-sso-demo
 ```
 
-User Center 通过 `https://superapp-test.jiguang.top` 访问。Embed Client 的 `origin` 和 `launch_url`
-必须配置为 Partner H5 的公网 HTTPS 地址，例如：
+User Center 通过 `http://superapp-dev.jiguang.top` 访问。Embed Client 的 `origin` 和
+`launch_url` 仍必须配置为 H5 的公网 HTTPS 地址。本 Demo 使用：
 
 ```text
-origin:     https://<your-domain>
-launch_url: https://<your-domain>/app
+origin:     https://semiparochial-unpiratical-yang.ngrok-free.dev
+launch_url: https://semiparochial-unpiratical-yang.ngrok-free.dev/app
 ```
 
 Android App 不写死 H5 地址；它只接受 User Center 返回并通过 ES256 验签的地址。
@@ -53,11 +56,12 @@ Android App 不写死 H5 地址；它只接受 User Center 返回并通过 ES256
 
 ```bash
 cp .env.example .env
-test -f secrets/partner-es256-private.pem
+test -f secrets/internal-h5-es256-private.pem
 ```
 
-Partner `.env` 的 `SUPERAPP_BASE_URL` 必须等于 User Center Issuer origin
-（当前为 `https://superapp-test.jiguang.top`），否则 `private_key_jwt` 的 `aud` 会校验失败。
+`.env` 的 `SUPERAPP_BASE_URL` 必须等于 User Center Issuer origin
+（当前为 `http://superapp-dev.jiguang.top`），不能填写 ngrok H5 地址，否则
+`private_key_jwt` 的 `aud` 会校验失败。
 
 ### 1.1 Android 命令行环境
 
@@ -80,7 +84,7 @@ android emulator list
 
 ## 2. 第一次构建
 
-### 2.1 Partner H5
+### 2.1 内部 H5
 
 ```bash
 cd /path/to/superapp-h5-sso-demo
@@ -134,9 +138,10 @@ curl --fail-with-body --silent http://localhost:8081/healthz
 curl --fail-with-body --silent http://localhost:8081/.well-known/superapp-embed-configuration | jq .
 ```
 
-Client 准入（Admin 登录、创建、登记公钥、激活）按联调走查第 2 步执行。
+Client 准入时必须提交 `client_type: "internal"`。Admin 登录、创建、登记公钥和激活按
+[内部 H5 静默 SSO 接入指南](../user-center/docs/internal-h5-silent-sso-integration.md)执行。
 
-### 3.2 启动 Partner Go Backend
+### 3.2 启动内部 H5 Go Backend
 
 Partner Go Backend 不会自动读取 `.env`：
 
@@ -149,12 +154,12 @@ cd partner-backend-go
 go run ./cmd/server
 ```
 
-Partner 服务监听 `http://localhost:3000`。
+内部 H5 服务监听 `http://localhost:3000`。
 
 ### 3.3 启动 ngrok
 
 ```bash
-ngrok http --url=<your-domain> 3000
+ngrok http --url=semiparochial-unpiratical-yang.ngrok-free.dev 3000
 ```
 
 固定域名必须和 User Center 中 Embed Client 的 `origin`、`launch_url` 完全一致。
@@ -165,9 +170,15 @@ ngrok http --url=<your-domain> 3000
 adb devices
 ```
 
-没有设备时启动模拟器。当前构建直接访问 `superapp-test.jiguang.top`，模拟器必须能解析并
-访问该域名；只有把 Issuer 改回 `http://localhost:8081` 做纯本地联调时才需要
-`adb reverse tcp:8081 tcp:8081`。
+没有设备时启动模拟器。当前 Debug 构建通过设备侧 `localhost:8081` 访问宿主机 Docker
+映射的 User Center `9111`；每次模拟器或 ADB 重启后执行：
+
+```bash
+adb reverse tcp:8081 tcp:9111
+```
+
+Launch Manifest 的 Issuer 仍是 `http://superapp-dev.jiguang.top`，APP 验签时不会把
+`localhost:8081` 当作 Issuer。
 
 ### 3.5 启动已经安装的 App
 
@@ -178,14 +189,13 @@ adb shell am start -W -n \
 
 ## 4. 联调行为
 
-使用 +60 手机号 OTP 登录。当前测试交付环境验证码是规范化 E.164 的后六位，例如
-`123456780` → `+60123456780` → `456780`。然后点击“Partner SSO Demo”金刚位。
+使用 Customer 账号登录，然后点击内部 H5 金刚位。第一次打开不会展示原生授权弹窗，
+页面会自动建立内部应用 Session。再次打开时：
 
-第一次申请资料会展示原生授权弹窗；同意后 H5 切换到独立的用户信息界面。再次打开时：
-
-- Partner Session 有效：直接显示用户信息；
-- Partner Session 丢失但 SuperApp Consent 有效：自动走一次授权码流程，静默恢复登录；
-- Consent 不存在、已撤销、已过期、版本变化或新增 Scope：再次展示原生授权界面。
+- 内部 H5 Session 有效：直接显示用户信息；
+- 内部 H5 Session 丢失：自动走一次授权码流程，静默恢复登录；
+- 授权记录被撤销：现有 Token 失效，下次打开按内部准入策略重新静默建立；
+- Client 停用、Customer Session 无效、Origin 不匹配或 Scope 越界：登录失败，不绕过校验。
 
 H5 不使用 LocalStorage 判断用户是否已授权。
 
@@ -217,7 +227,7 @@ adb shell settings delete global global_http_proxy_exclusion_list
 | 启动 Go Backend | 进程未运行，或 Go/H5 页面代码变化 |
 | 启动 ngrok | 隧道未运行 |
 | 启动模拟器 | `adb devices` 没有目标设备 |
-| `adb reverse tcp:8081 tcp:8081` | 仅使用 localhost Issuer 时；每次模拟器/设备或 ADB 重启后 |
+| `adb reverse tcp:8081 tcp:9111` | 当前本地 Debug 环境；每次模拟器/设备或 ADB 重启后 |
 | `./gradlew ... assembleDebug` | Android 代码变化或首次构建 |
 | `adb install -r ...` | 第一次安装，或 APK 重新构建后 |
 
@@ -227,6 +237,6 @@ adb shell settings delete global global_http_proxy_exclusion_list
 - PKCE verifier 只存在 Partner Backend；
 - Partner Token 只存在 Partner Backend；
 - WebView Bridge 只注入验签 Manifest 指定的 HTTPS Origin；
-- `openPrivacySettings` 打开原生授权列表，可查看和撤销 Partner Consent。
+- 内部应用不展示 `openPrivacySettings`；其数据访问范围由 Admin 的 `allowed_scopes` 管理。
 
 更详细的 Android 说明见 [`superapp-android/README.md`](superapp-android/README.md)。

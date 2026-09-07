@@ -117,7 +117,7 @@ class MainViewModel(
                     manifest = manifest,
                     message = null,
                 )
-            }.onFailure { setFailure("无法安全打开 Partner H5", it) }
+            }.onFailure { setFailure("无法安全打开内部 H5", it) }
             setBusy(false)
         }
     }
@@ -160,10 +160,10 @@ class MainViewModel(
                     screen = AppScreen.PRIVACY,
                     manifest = if (consent.clientId == BuildConfig.EMBED_CLIENT_ID) null else _uiState.value.manifest,
                     consents = it,
-                    message = "授权已撤销",
+                    message = "当前应用访问已清除；下次打开内部应用时会按准入策略重新建立",
                 )
                 onSuccess()
-            }.onFailure { setFailure("撤销授权失败", it) }
+            }.onFailure { setFailure("清除应用访问失败", it) }
             setBusy(false)
         }
     }

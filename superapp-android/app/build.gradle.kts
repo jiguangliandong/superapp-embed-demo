@@ -17,10 +17,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "SUPERAPP_BASE_URL", "\"https://superapp-test.jiguang.top\"")
-        buildConfigField("String", "EMBED_ISSUER", "\"https://superapp-test.jiguang.top\"")
-        buildConfigField("String", "EMBED_JWKS_URL", "\"https://superapp-test.jiguang.top/.well-known/jwks.json\"")
-        buildConfigField("String", "EMBED_CLIENT_ID", "\"embcli_01M0HK4MQG8YBAG06K9DP44RQR\"")
+        buildConfigField("String", "SUPERAPP_BASE_URL", "\"http://localhost:8081\"")
+        buildConfigField("String", "EMBED_ISSUER", "\"http://superapp-dev.jiguang.top\"")
+        buildConfigField("String", "EMBED_JWKS_URL", "\"http://localhost:8081/.well-known/jwks.json\"")
+        buildConfigField("String", "EMBED_CLIENT_ID", "\"embcli_01M1WVWT0PXG93RD6MN4KN7RF7\"")
     }
 
     buildTypes {

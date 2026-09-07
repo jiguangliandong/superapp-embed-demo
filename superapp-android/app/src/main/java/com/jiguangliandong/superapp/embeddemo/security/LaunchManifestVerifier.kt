@@ -98,7 +98,7 @@ class LaunchManifestVerifier(
     private fun validateLocation(manifest: LaunchManifest) {
         val origin = URI(manifest.origin)
         val launch = URI(manifest.launchUrl)
-        require(origin.scheme == "https" && launch.scheme == "https") { "Partner URL must use HTTPS" }
+        require(origin.scheme == "https" && launch.scheme == "https") { "Embed URL must use HTTPS" }
         require(origin.userInfo == null && launch.userInfo == null) { "userinfo is forbidden" }
         require(origin.path.isNullOrEmpty() && origin.query == null && origin.fragment == null) { "origin must be exact" }
         require(normalizedOrigin(launch) == manifest.origin) { "launch URL origin mismatch" }

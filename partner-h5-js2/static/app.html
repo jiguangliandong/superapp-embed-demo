@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="superapp-client-id" content="__SUPERAPP_CLIENT_ID__">
-    <title>SuperApp Partner 2 SSO Demo</title>
+    <title>SuperApp 内部 H5 2 SSO Demo</title>
     <link rel="stylesheet" href="/assets/app.css">
     <script src="/assets/app.js" defer></script>
     <script src="/assets/storage-diagnostics.js" defer></script>
@@ -13,16 +13,16 @@
     <main class="page-shell">
       <section id="loading-view" class="loading-card view" aria-live="polite">
         <div class="loading-mark" aria-hidden="true"></div>
-        <p class="eyebrow">Partner 2 H5 · SSO</p>
-        <h1>正在安全登录</h1>
-        <p id="loading-message" class="lead">正在验证 Partner 会话，请稍候…</p>
+        <p class="eyebrow">内部 H5 2 · 静默 SSO</p>
+        <h1>正在登录内部服务 2</h1>
+        <p id="loading-message" class="lead">正在验证内部应用会话，请稍候…</p>
       </section>
 
       <section id="login-view" class="hero view" hidden>
-        <p class="eyebrow">Partner 2 H5 · SSO Demo</p>
-        <h1>欢迎进入合作方 2 服务</h1>
+        <p class="eyebrow">内部 H5 2 · SSO Demo</p>
+        <h1>欢迎进入内部服务 2</h1>
         <p class="lead">
-          这是第二个真实的 SuperApp 内嵌 H5 示例。点击授权后，由 SuperApp 原生容器确认权限，Partner 2 Backend 再安全取得用户资料。
+          这是第二个 SuperApp 内部 H5 示例。从金刚位进入后会自动完成 SSO，不弹出用户授权确认框；User Center 仍会校验内部应用和准入范围。
         </p>
 
         <div class="status-grid" aria-label="SSO 状态">
@@ -41,17 +41,16 @@
         </div>
 
         <div class="actions">
-          <button id="login-button" class="primary" type="button" disabled>授权并登录</button>
-          <button class="secondary" data-open-privacy type="button" disabled>授权管理</button>
+          <button id="login-button" class="primary" type="button" disabled>重新登录</button>
           <button class="secondary" data-close type="button" disabled>关闭页面</button>
         </div>
 
         <p class="error" data-error-detail role="alert" hidden></p>
-        <a class="privacy-link" href="/privacy">查看 Partner 隐私政策</a>
+        <a class="privacy-link" href="/privacy">查看内部服务数据说明</a>
       </section>
 
       <section id="profile-view" class="profile-card view" hidden>
-        <p class="eyebrow">Partner 2 H5 · 用户信息</p>
+        <p class="eyebrow">内部 H5 2 · 用户信息</p>
         <div class="profile-header">
           <div id="profile-avatar" class="profile-avatar" aria-hidden="true"></div>
           <div>
@@ -70,17 +69,16 @@
           <div><dt>手机号</dt><dd id="profile-phone"></dd></div>
           <div><dt>邮箱</dt><dd id="profile-email"></dd></div>
           <div><dt>KYC 状态</dt><dd id="profile-kyc"></dd></div>
-          <div><dt>授权范围</dt><dd id="profile-scopes"></dd></div>
-          <div><dt>授权版本</dt><dd id="profile-consent-version"></dd></div>
+          <div><dt>准入范围</dt><dd id="profile-scopes"></dd></div>
+          <div><dt>策略版本</dt><dd id="profile-consent-version"></dd></div>
           <div><dt>会话有效期</dt><dd id="profile-session-expires"></dd></div>
         </dl>
 
         <div class="actions profile-actions">
-          <button class="secondary" data-open-privacy type="button" disabled>授权管理</button>
           <button class="secondary" data-close type="button" disabled>关闭页面</button>
         </div>
         <p class="error" data-error-detail role="alert" hidden></p>
-        <a class="privacy-link" href="/privacy">查看 Partner 隐私政策</a>
+        <a class="privacy-link" href="/privacy">查看内部服务数据说明</a>
       </section>
 
       <section class="storage-test-card" data-storage-diagnostics></section>

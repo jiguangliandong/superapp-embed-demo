@@ -16,13 +16,15 @@ test("uses JavaScript SDK v0.0.2", async () => {
   assert.equal(packageJSON.version, "0.0.2");
 });
 
-test("initial page shows only a neutral session restoration state", async () => {
+test("initial page identifies the service as an internal silent SSO app", async () => {
   const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
   const html = await readFile(resolve(projectRoot, "static", "app.html"), "utf8");
 
   assert.match(html, /<section id="loading-view" class="loading-card view"/);
   assert.match(html, /<section id="login-view" class="hero view" hidden>/);
   assert.match(html, /<section id="profile-view" class="profile-card view" hidden>/);
+  assert.match(html, /内部 H5/);
+  assert.doesNotMatch(html, /授权并登录|data-open-privacy/);
 });
 
 test("automatic SSO does not trust browser storage as authorization state", async () => {
@@ -50,24 +52,24 @@ test("storage diagnostics stays isolated from the SSO authorization module", asy
   assert.match(diagnostics, /caches\.open/);
 });
 
-test("automatic SSO uses consent-neutral copy until SuperApp decides", async () => {
+test("automatic SSO uses internal silent-login copy", async () => {
   const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
   const source = await readFile(resolve(projectRoot, "src", "app.js"), "utf8");
 
-  assert.doesNotMatch(source, /授权仍然有效|免授权恢复/);
-  assert.match(source, /正在检查 SuperApp 授权状态/);
-  assert.match(source, /正在通过 SuperApp 登录/);
-  assert.match(source, /自动发起 SSO 登录/);
-  assert.match(source, /用户主动完成 SSO 登录/);
-  assert.match(source, /Partner 会话自动恢复/);
+  assert.doesNotMatch(source, /授权仍然有效|免授权恢复|等待 SuperApp 授权/);
+  assert.match(source, /正在建立内部应用会话/);
+  assert.match(source, /正在通过 SuperApp 静默登录/);
+  assert.match(source, /自动完成内部 SSO 登录/);
+  assert.match(source, /重新发起内部 SSO 登录/);
+  assert.match(source, /内部应用会话自动恢复/);
 });
 
-test("interactive authorization allows enough time for native consent", async () => {
+test("internal SSO uses the SDK default bridge timeout because it has no consent dialog", async () => {
   const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
   const source = await readFile(resolve(projectRoot, "src", "app.js"), "utf8");
 
-  assert.match(source, /interactiveAuthorizationTimeoutMs = 121_000/);
-  assert.match(source, /createSuperappEmbedSDK\(\{ timeoutMs: interactiveAuthorizationTimeoutMs \}\)/);
+  assert.doesNotMatch(source, /interactiveAuthorizationTimeoutMs/);
+  assert.match(source, /createSuperappEmbedSDK\(\)/);
 });
 
 test("authenticate connects bootstrap, Native Bridge and complete without exposing PKCE verifier", async () => {

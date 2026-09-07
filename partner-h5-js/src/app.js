@@ -11,9 +11,6 @@ const requestedScopes = [
   "kyc.status",
 ];
 
-// 首次授权包含用户阅读和确认原生 Consent 的时间，不能沿用短请求默认超时。
-const interactiveAuthorizationTimeoutMs = 121_000;
-
 const expectedClientId = document
   .querySelector('meta[name="superapp-client-id"]')
   ?.getAttribute("content");
@@ -27,7 +24,6 @@ const elements = {
   launchStatus: document.querySelector("#launch-status"),
   ssoStatus: document.querySelector("#sso-status"),
   loginButton: document.querySelector("#login-button"),
-  privacyButtons: [...document.querySelectorAll("[data-open-privacy]")],
   closeButtons: [...document.querySelectorAll("[data-close]")],
   errors: [...document.querySelectorAll("[data-error-detail]")],
   avatar: document.querySelector("#profile-avatar"),
@@ -68,16 +64,13 @@ const clearError = () => {
 
 const updateControls = (busy = false) => {
   elements.loginButton.disabled = busy || !capabilities.includes("getAuthCode");
-  for (const button of elements.privacyButtons) {
-    button.disabled = busy || !capabilities.includes("openPrivacySettings");
-  }
   for (const button of elements.closeButtons) {
     button.disabled = busy || !capabilities.includes("close");
   }
-  elements.loginButton.textContent = busy ? "正在授权…" : "授权并登录";
+  elements.loginButton.textContent = busy ? "正在登录…" : "重新登录";
 };
 
-const displayValue = (value, fallback = "未授权或未设置") =>
+const displayValue = (value, fallback = "未返回或未设置") =>
   typeof value === "string" && value.trim() ? value : fallback;
 
 const fallbackAvatar = (displayName) =>
@@ -154,7 +147,7 @@ const showLogin = () => {
   replacePath("/app");
 };
 
-const showLoading = (message = "正在验证 Partner 会话，请稍候…") => {
+const showLoading = (message = "正在验证内部应用会话，请稍候…") => {
   elements.loginView.hidden = true;
   elements.profileView.hidden = true;
   elements.loadingView.hidden = false;
@@ -189,16 +182,16 @@ const waitForPageLoad = () => new Promise((resolve) => {
 const authenticate = async ({ automatic = false } = {}) => {
   const copy = automatic
     ? {
-        loading: "正在检查 SuperApp 授权状态…",
-        pending: "正在通过 SuperApp 登录",
-        successEntry: "自动发起 SSO 登录",
-        failure: "需要重新授权",
+        loading: "正在建立内部应用会话…",
+        pending: "正在通过 SuperApp 静默登录",
+        successEntry: "自动完成内部 SSO 登录",
+        failure: "内部应用登录失败",
       }
     : {
         loading: null,
-        pending: "等待 SuperApp 授权",
-        successEntry: "用户主动完成 SSO 登录",
-        failure: "授权或登录失败",
+        pending: "正在重新登录",
+        successEntry: "重新发起内部 SSO 登录",
+        failure: "登录失败",
       };
 
   clearError();
@@ -237,7 +230,7 @@ const initialize = async () => {
     if (!expectedClientId || expectedClientId === "__SUPERAPP_CLIENT_ID__") {
       throw new Error("Partner client ID was not injected by the backend");
     }
-    sdk = createSuperappEmbedSDK({ timeoutMs: interactiveAuthorizationTimeoutMs });
+    sdk = createSuperappEmbedSDK();
     const context = await sdk.getContext();
     if (
       context?.sdk_version !== "1.0" ||
@@ -251,7 +244,7 @@ const initialize = async () => {
     capabilities = context.capabilities;
     elements.contextStatus.textContent = `SuperApp / ${context.locale || "未知语言"}`;
     elements.contextStatus.classList.add("status-good");
-    elements.ssoStatus.textContent = "正在检查 Partner 会话";
+    elements.ssoStatus.textContent = "正在检查内部应用会话";
     updateControls();
   } catch (error) {
     showLogin();
@@ -265,7 +258,7 @@ const initialize = async () => {
   try {
     const session = await fetchPartnerSession();
     if (session) {
-      renderProfile(session, "Partner 会话自动恢复");
+      renderProfile(session, "内部应用会话自动恢复");
       updateControls();
       return;
     }
@@ -273,10 +266,9 @@ const initialize = async () => {
     showError(error);
   }
 
-  // A missing Partner Session does not tell us whether SuperApp Consent exists.
-  // Always request a fresh authorization code and let the trusted SuperApp
-  // Backend decide: an active Consent completes silently; first use, expiry,
-  // revocation or added scopes opens the native consent UI.
+  // 内部应用的 AllowedScopes 已由管理员在准入时批准。缺少本应用会话时始终申请新的
+  // Authorization Code；User Center 仍会校验 Client、Origin、Launch、Scope 和
+  // Customer Session，但不会要求面向外部 Partner 的原生授权确认。
   await waitForPageLoad();
   if (await authenticate({ automatic: true })) return;
   updateControls();
@@ -285,17 +277,6 @@ const initialize = async () => {
 elements.loginButton.addEventListener("click", async () => {
   await authenticate();
 });
-
-for (const button of elements.privacyButtons) {
-  button.addEventListener("click", async () => {
-    clearError();
-    try {
-      await sdk.openPrivacySettings();
-    } catch (error) {
-      showError(error);
-    }
-  });
-}
 
 for (const button of elements.closeButtons) {
   button.addEventListener("click", async () => {
