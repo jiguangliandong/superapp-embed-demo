@@ -2,7 +2,7 @@
 
 > 执行日期：2026-09-03  
 > 新环境入口：`https://superapp-test.jiguang.top`  
-> 参考：`eastel-backend/docs/test-environment.md`、`eastel-backend/docs/sso/embed-h5-sso-runbook.md`  
+> 参考：`eastel-backend/docs/test-environment.md`、`user-center/docs/sso/embed-h5-sso-runbook.md`  
 > Demo：`superapp-h5-sso-demo`
 
 ## 1. 交付结论

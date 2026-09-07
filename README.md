@@ -12,7 +12,7 @@
 身份与 Embed 权威在同级 `user-center`（当前本地环境 Issuer 为
 `http://superapp-dev.jiguang.top`），内部 H5 Backend 机器接口统一走
 `/api/user/v1/open/embed/*`。按步骤的联调走查见
-[内部 H5 静默 SSO 接入指南](../user-center/docs/internal-h5-silent-sso-integration.md)。
+[内部 H5 静默 SSO 接入指南](../user-center/docs/sso/internal-h5-silent-sso-integration.md)。
 本次新测试环境迁移的实际修改、IM/Partner 影响与验收结果见
 [新测试环境 SSO 迁移与 Partner H5 联调交付记录](docs/test-environment-reintegration-20260903.md)。
 
@@ -139,7 +139,7 @@ curl --fail-with-body --silent http://localhost:8081/.well-known/superapp-embed-
 ```
 
 Client 准入时必须提交 `client_type: "internal"`。Admin 登录、创建、登记公钥和激活按
-[内部 H5 静默 SSO 接入指南](../user-center/docs/internal-h5-silent-sso-integration.md)执行。
+[内部 H5 静默 SSO 接入指南](../user-center/docs/sso/internal-h5-silent-sso-integration.md)执行。
 
 ### 3.2 启动内部 H5 Go Backend
 
